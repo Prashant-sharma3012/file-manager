@@ -19,7 +19,7 @@ Search file by name
   go run main.go -op=search -name=your-file-path -dir=directory-to-be-searched
   example: go run main.go -op=search -fname="App" -dir="C:\DEVEL\GITHUB"
 
-Recursive with skip and atch opts
+Recursive with skip, match and multithreading opts
   go run main.go -op=search -name=your-file-path -dir=directory-to-be-searched -r=true
   example: go run main.go -op=search -fname="App" -dir="C:\DEVEL\GITHUB" -r=true 
 
@@ -28,3 +28,8 @@ Recursive with skip and atch opts
 
   go run main.go -op=search -name=your-file-path -dir=directory-to-be-searched -r=true match=exact
   example: go run main.go -op=search -fname="App" -dir="C:\DEVEL\GITHUB" -r=true -skipDir=node_modules  match=exact
+
+  go run main.go -op=search -name=your-file-path -dir=directory-to-be-searched -r=true match=exact -multiThread=true
+  example: go run main.go -op=search -fname="App" -dir="C:\DEVEL\GITHUB" -r=true -skipDir=node_modules  match=exact -multiThread=true
+
+  

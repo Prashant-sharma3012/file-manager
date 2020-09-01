@@ -14,6 +14,7 @@ func main() {
 	mode := flag.String("r", "false", "File name whose details are needed")
 	skipDir := flag.String("skipDir", " ", "Folders not to be searched")
 	match := flag.String("match", " ", "Folders not to be searched")
+	multiThread := flag.String("multiThread", " ", "Folders not to be searched")
 
 	flag.Parse()
 
@@ -22,8 +23,11 @@ func main() {
 		search.FileInfoByName(*fileName)
 	case *command == "search":
 		if *mode == "true" {
-			// search.FindFileByNameRecursive(*fileName, *dir, *skipDir, *match)
-			search.FindFileByNameConcurrent(*fileName, *dir, *skipDir, *match)
+			if *multiThread == "true" {
+				search.FindFileByNameConcurrent(*fileName, *dir, *skipDir, *match)
+			} else {
+				search.FindFileByNameRecursive(*fileName, *dir, *skipDir, *match)
+			}
 		} else {
 			search.FindFileByName(*fileName, *dir)
 		}
