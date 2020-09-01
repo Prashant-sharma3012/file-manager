@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 )
 
 // FileInfoByName Gets Filedetails by full file path
@@ -52,9 +53,73 @@ func FindFileByName(filename string, directory string) {
 	}
 
 	fmt.Println("--------------------------------------------------------------")
-	fmt.Println("\t\tFile Matches")
+	fmt.Println("\t\tSearch results")
 	fmt.Println("--------------------------------------------------------------")
 	for _, fileName := range filesAndFolders {
 		fmt.Printf("%v\n", fileName)
 	}
+}
+
+func getMatchingFilesRecursive(filename string, directory string, skipDirectory string, match string) ([]string, []int64, error) {
+	filesAndFolders := []string{}
+	// index 1 is number of files searched index 2 is number of file that match
+	fileNumbers := []int64{0, 0}
+
+	files, err := ioutil.ReadDir(directory)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for _, file := range files {
+		fileNumbers[0]++
+		name := file.Name()
+		nameWithPath := directory + "\\" + name
+
+		if match == "exact" {
+			if name == filename {
+				fileNumbers[1]++
+				filesAndFolders = append(filesAndFolders, nameWithPath)
+			}
+		} else {
+			if strings.Contains(name, filename) {
+				fileNumbers[1]++
+				filesAndFolders = append(filesAndFolders, nameWithPath)
+			}
+		}
+
+		if file.IsDir() && name != skipDirectory {
+			dir := directory + "\\" + name
+			names, fileSearched, err := getMatchingFilesRecursive(filename, dir, skipDirectory, match)
+			fileNumbers[0] = fileNumbers[0] + fileSearched[0]
+			fileNumbers[1] = fileNumbers[1] + fileSearched[1]
+			if err != nil {
+				return nil, nil, err
+			}
+
+			filesAndFolders = append(filesAndFolders, names...)
+		}
+	}
+
+	return filesAndFolders, fileNumbers, nil
+
+}
+
+func FindFileByNameRecursive(filename string, directory string, skipDirectory string, match string) {
+	t := time.Now()
+	filesAndFolders := []string{}
+
+	filesAndFolders, fileNumbers, err := getMatchingFilesRecursive(filename, directory, skipDirectory, match)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("--------------------------------------------------------------")
+	fmt.Println("\t\tSearch results")
+	fmt.Println("--------------------------------------------------------------")
+	fmt.Printf("Time Taken to search: %v, Total Files Scanned: %v , Total Files Found: %v \n", t.Sub(time.Now()), fileNumbers[0], fileNumbers[1])
+	for _, fileName := range filesAndFolders {
+		fmt.Printf("%v\n", fileName)
+	}
+	fmt.Println("--------------------------------------------------------------")
 }

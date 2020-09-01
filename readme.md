@@ -18,3 +18,13 @@ Get File details
 Search file by name
   go run main.go -op=search -name=your-file-path -dir=directory-to-be-searched
   example: go run main.go -op=search -fname="App" -dir="C:\DEVEL\GITHUB"
+
+Recursive with skip and atch opts
+  go run main.go -op=search -name=your-file-path -dir=directory-to-be-searched -r=true
+  example: go run main.go -op=search -fname="App" -dir="C:\DEVEL\GITHUB" -r=true 
+
+  go run main.go -op=search -name=your-file-path -dir=directory-to-be-searched -r=true
+  example: go run main.go -op=search -fname="App" -dir="C:\DEVEL\GITHUB" -r=true -skipDir=node_modules
+
+  go run main.go -op=search -name=your-file-path -dir=directory-to-be-searched -r=true match=exact
+  example: go run main.go -op=search -fname="App" -dir="C:\DEVEL\GITHUB" -r=true -skipDir=node_modules  match=exact
