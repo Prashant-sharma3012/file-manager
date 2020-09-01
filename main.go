@@ -22,7 +22,8 @@ func main() {
 		search.FileInfoByName(*fileName)
 	case *command == "search":
 		if *mode == "true" {
-			search.FindFileByNameRecursive(*fileName, *dir, *skipDir, *match)
+			// search.FindFileByNameRecursive(*fileName, *dir, *skipDir, *match)
+			search.FindFileByNameConcurrent(*fileName, *dir, *skipDir, *match)
 		} else {
 			search.FindFileByName(*fileName, *dir)
 		}

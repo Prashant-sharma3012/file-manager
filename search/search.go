@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -120,6 +121,95 @@ func FindFileByNameRecursive(filename string, directory string, skipDirectory st
 	fmt.Printf("Time Taken to search: %v, Total Files Scanned: %v , Total Files Found: %v \n", time.Now().Sub(t), fileNumbers[0], fileNumbers[1])
 	fmt.Println("----------------------------------------------------------------------------------------")
 	for _, fileName := range filesAndFolders {
+		fmt.Printf("%v\n", fileName)
+	}
+	fmt.Println("----------------------------------------------------------------------------------------")
+}
+
+type dirScanDetails struct {
+	filesAndFolders []string
+	fileNumbers     []int64
+	err             error
+}
+
+func getMatchingFilesConcurrent(filename string, directory string, skipDirectory string, match string, c chan dirScanDetails, running *int64) {
+
+	details := dirScanDetails{
+		filesAndFolders: []string{},
+		fileNumbers:     []int64{0, 0},
+		err:             nil,
+	}
+
+	files, err := ioutil.ReadDir(directory)
+	if err != nil {
+		atomic.AddInt64(running, -1)
+		c <- details
+		return
+	}
+
+	for _, file := range files {
+		details.fileNumbers[0]++
+		name := file.Name()
+		nameWithPath := directory + "\\" + name
+
+		if match == "exact" {
+			if name == filename {
+				details.fileNumbers[1]++
+				details.filesAndFolders = append(details.filesAndFolders, nameWithPath)
+			}
+		} else {
+			if strings.Contains(name, filename) {
+				details.fileNumbers[1]++
+				details.filesAndFolders = append(details.filesAndFolders, nameWithPath)
+			}
+		}
+
+		if file.IsDir() && name != skipDirectory {
+			dir := directory + "\\" + name
+			atomic.AddInt64(running, 1)
+			go getMatchingFilesConcurrent(filename, dir, skipDirectory, match, c, running)
+		}
+	}
+
+	atomic.AddInt64(running, -1)
+	c <- details
+	return
+}
+
+func FindFileByNameConcurrent(filename string, directory string, skipDirectory string, match string) {
+	t := time.Now()
+	c := make(chan dirScanDetails, 100)
+	var running int64
+
+	details := dirScanDetails{
+		filesAndFolders: []string{},
+		fileNumbers:     []int64{0, 0},
+		err:             nil,
+	}
+
+	atomic.AddInt64(&running, 1)
+	go getMatchingFilesConcurrent(filename, directory, skipDirectory, match, c, &running)
+
+	for v := range c {
+		if v.err != nil {
+			fmt.Println(v.err)
+			break
+		} else {
+			details.filesAndFolders = append(details.filesAndFolders, v.filesAndFolders...)
+			details.fileNumbers[0] = details.fileNumbers[0] + v.fileNumbers[0]
+			details.fileNumbers[1] = details.fileNumbers[1] + v.fileNumbers[1]
+		}
+		if running == 0 {
+			break
+		}
+	}
+
+	fmt.Println("----------------------------------------------------------------------------------------")
+	fmt.Println("\t\tSearch results")
+	fmt.Println("----------------------------------------------------------------------------------------")
+	fmt.Printf("Time Taken to search: %v, Total Files Scanned: %v , Total Files Found: %v \n", time.Now().Sub(t), details.fileNumbers[0], details.fileNumbers[1])
+	fmt.Println("----------------------------------------------------------------------------------------")
+	for _, fileName := range details.filesAndFolders {
 		fmt.Printf("%v\n", fileName)
 	}
 	fmt.Println("----------------------------------------------------------------------------------------")
