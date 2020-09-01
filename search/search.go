@@ -114,12 +114,13 @@ func FindFileByNameRecursive(filename string, directory string, skipDirectory st
 		return
 	}
 
-	fmt.Println("--------------------------------------------------------------")
+	fmt.Println("----------------------------------------------------------------------------------------")
 	fmt.Println("\t\tSearch results")
-	fmt.Println("--------------------------------------------------------------")
-	fmt.Printf("Time Taken to search: %v, Total Files Scanned: %v , Total Files Found: %v \n", t.Sub(time.Now()), fileNumbers[0], fileNumbers[1])
+	fmt.Println("----------------------------------------------------------------------------------------")
+	fmt.Printf("Time Taken to search: %v, Total Files Scanned: %v , Total Files Found: %v \n", time.Now().Sub(t), fileNumbers[0], fileNumbers[1])
+	fmt.Println("----------------------------------------------------------------------------------------")
 	for _, fileName := range filesAndFolders {
 		fmt.Printf("%v\n", fileName)
 	}
-	fmt.Println("--------------------------------------------------------------")
+	fmt.Println("----------------------------------------------------------------------------------------")
 }
