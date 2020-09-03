@@ -33,3 +33,6 @@ Recursive with skip, match and multithreading opts
   example: go run main.go -op=search -fname="App" -dir="C:\DEVEL\GITHUB" -r=true -skipDir=node_modules  match=exact -multiThread=true
 
   
+Compress a file
+  go run main.go -op=zip -fpath=your-file-path -dir=where-file-should-get-saved
+  go run main.go -op=zip -fpath="C:\test-file-manager\Zone_api.xlsx" -dir="C:\test-file-manager"

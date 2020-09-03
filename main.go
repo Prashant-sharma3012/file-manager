@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 
+	"github.com/Prashant-sharma3012/file-manager/archive"
 	"github.com/Prashant-sharma3012/file-manager/search"
 )
 
@@ -15,6 +16,7 @@ func main() {
 	skipDir := flag.String("skipDir", " ", "Folders not to be searched")
 	match := flag.String("match", " ", "Folders not to be searched")
 	multiThread := flag.String("multiThread", " ", "Folders not to be searched")
+	filepath := flag.String("fpath", " ", "File name whose details are needed")
 
 	flag.Parse()
 
@@ -31,5 +33,7 @@ func main() {
 		} else {
 			search.FindFileByName(*fileName, *dir)
 		}
+	case *command == "zip":
+		archive.ZipFile(*filepath, *dir)
 	}
 }
