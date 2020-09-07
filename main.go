@@ -17,6 +17,7 @@ func main() {
 	match := flag.String("match", " ", "Folders not to be searched")
 	multiThread := flag.String("multiThread", " ", "Folders not to be searched")
 	filepath := flag.String("fpath", " ", "File name whose details are needed")
+	ftype := flag.String("ftype", "file", "File name whose details are needed")
 
 	flag.Parse()
 
@@ -34,6 +35,11 @@ func main() {
 			search.FindFileByName(*fileName, *dir)
 		}
 	case *command == "zip":
-		archive.ZipFile(*filepath, *dir)
+		if *ftype == "file" {
+			archive.ZipFile(*filepath, *dir)
+		} else {
+			archive.ZipFolder(*filepath, *dir)
+		}
+
 	}
 }

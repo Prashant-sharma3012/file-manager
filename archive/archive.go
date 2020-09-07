@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sync/atomic"
 
 	"github.com/Prashant-sharma3012/file-manager/utils"
 )
@@ -91,6 +92,85 @@ func ZipFile(filePath string, dest string) {
 	defer compressor.Close()
 }
 
+type fileDetails struct {
+	path     string
+	fileInfo os.FileInfo
+}
+
+func readDir(path string, c chan fileDetails, running *int64) {
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for _, file := range files {
+		// is file a folder
+		newPath := path + "\\" + file.Name()
+		if file.IsDir() {
+			atomic.AddInt64(running, 1)
+			go readDir(newPath, c, running)
+		} else {
+			// if not write it to compress
+			c <- fileDetails{path: newPath, fileInfo: file}
+		}
+	}
+
+	atomic.AddInt64(running, -1)
+}
+
+func writeFile(fDetails fileDetails, fd *os.File, compressor *zip.Writer, originalPath string, parentFolder string) {
+	// read file bytes
+	fileData, err := ioutil.ReadFile(fDetails.path)
+	if err != nil {
+		fmt.Println("Error reading file", fDetails.path)
+	}
+
+	fileHeader, err := makeFileHeader(fDetails.fileInfo)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	relativePath := strings.Split(fDetails.path, originalPath)[1]
+	fileHeader.Name = parentFolder + strings.Replace(relativePath, "\\", "/", -1)
+
+	_, err = compress(fileHeader, fileData, compressor)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 func ZipFolder(src string, dest string) {
 
+	calc := utils.GetRunTimeCalculator()
+	calc.Start()
+
+	fmt.Printf("Processing... \n")
+
+	c := make(chan fileDetails, 50)
+	var running int64
+
+	parts := strings.Split(src, "\\")
+	foldername := parts[len(parts)-1]
+
+	fd, compressor, err := getCompressor(dest + "\\" + foldername + ".zip")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	atomic.AddInt64(&running, 1)
+	go readDir(src, c, &running)
+
+	for file := range c {
+		// write file
+		writeFile(file, fd, compressor, src, foldername)
+		if running == 0 {
+			break
+		}
+	}
+
+	fmt.Printf("Processing Complete \n")
+	calc.End()
+
+	defer fd.Close()
+	defer compressor.Close()
 }
